@@ -22,9 +22,25 @@ module.exports = appInfo => {
   const userConfig = {
     // myAppName: 'egg',
   }
-
+  // config.security: {
+  //   csrf = {
+  //     enable: false,
+  //   }
+  // }
   return {
     ...config,
     ...userConfig,
+    security: {
+      csrf: { enable: false },
+    },
+    mongoose: {
+      client: {
+        url: 'mongodb://101.201.57.140:27017/kkbhub',
+        options: {},
+      },
+    },
+    jwt: {
+      secret: 'wangxiaojian@163.com'
+    }
   }
 }

@@ -29,7 +29,8 @@ module.exports = {
   ** Plugins to load before mounting the App
   */
   plugins: [
-    '@/plugins/element-ui'
+    '@/plugins/element-ui',
+    '@/plugins/axios',
   ],
   /*
   ** Nuxt.js dev-modules
@@ -40,6 +41,8 @@ module.exports = {
   ** Nuxt.js modules
   */
   modules: [
+    '@nuxtjs/axios',
+    '@nuxtjs/proxy'
   ],
   /*
   ** Build configuration
@@ -49,7 +52,16 @@ module.exports = {
     /*
     ** You can extend webpack config here
     */
-    extend (config, ctx) {
+    extend(config, ctx) {
+    }
+  },
+  proxy: {
+    "/api/": {
+      target: "http://127.0.0.1:7001",
+      secure: false,
+      pathRewrite: {
+        '^/api': ""
+      }
     }
   }
 }
