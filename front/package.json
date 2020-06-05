@@ -12,6 +12,8 @@
     "test": "jest"
   },
   "dependencies": {
+    "@nuxtjs/axios": "^5.10.3",
+    "axios": "^0.19.2",
     "cross-env": "^5.2.0",
     "element-ui": "^2.4.11",
     "koa": "^2.6.2",

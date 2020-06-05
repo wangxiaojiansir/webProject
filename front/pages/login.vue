@@ -11,8 +11,19 @@
         <el-input placeholder="验证码" v-model="form.captcha"></el-input>
         <img @click="updataCaptcha" :src="captchaUrl" alt srcset />
       </el-form-item>
+      <el-form-item props="emailcode" class="captcha" label="邮箱验证码">
+        <el-input placeholder="验证码" v-model="form.emailcode"></el-input>
+        <!-- <img @click="updataCaptcha" :src="captchaUrl" alt srcset /> -->
+        <el-button
+          type="primary"
+          @click="sendEmailCode"
+          style="width:100px"
+          :disabled="send.timer > 0"
+        >{{sendText}}</el-button>
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="loginHandle">登录</el-button>
+        <el-button type="primary" @click="registerHandle">注册</el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -26,11 +37,15 @@ export default {
   layout: "login",
   data() {
     return {
+      send: {
+        timer: 0
+      },
       captchaUrl: "",
       form: {
         email: "wangxiaojiansir@163.com",
         password: "a123456",
-        captcha: ""
+        captcha: "",
+        emailcode: ""
       },
       rules: {
         email: [
@@ -38,14 +53,38 @@ export default {
           { type: "email", message: "请输入正确邮箱" }
         ],
         password: [{ required: true, message: "请输入密码" }],
+        emailcode: [{ required: true, message: "请输入邮箱验证码" }],
         captcha: [{ required: true, message: "请输入验证码" }]
       }
     };
+  },
+  computed: {
+    sendText() {
+      if (this.send.timer <= 0) {
+        return "发送验证码";
+      }
+      return `${this.send.timer}s 后`;
+    }
   },
   mounted() {
     this.updataCaptcha();
   },
   methods: {
+    registerHandle() {
+      this.$router.push("/register");
+    },
+    async sendEmailCode() {
+      let res = await this.$http.get("/sendcode?email=" + this.form.email);
+      if (res.code == 0) {
+        this.send.timer = 10;
+        this.timer = setInterval(() => {
+          this.send.timer -= 1;
+          if (this.send.timer == 0) {
+            clearInterval(this.timer);
+          }
+        }, 1000);
+      }
+    },
     updataCaptcha() {
       this.captchaUrl = "/api/captcha?_t=" + new Date().getTime();
     },
@@ -57,14 +96,18 @@ export default {
           let obj = {
             email: this.form.email,
             password: md5(this.form.password),
-            captcha: this.form.captcha
+            captcha: this.form.captcha,
+            emailcode: this.form.emailcode
           };
+          console.log(obj);
+
           let res = await this.$http.post("/user/login", obj);
 
           if (res.code == 0) {
+            localStorage.setItem("token", res.data.token);
             this.$message.success("登录成功");
             setTimeout(() => {
-              this.$router.push("/");
+              this.$router.push("/uc");
             }, 500);
           } else {
             this.$message.error(res.message);

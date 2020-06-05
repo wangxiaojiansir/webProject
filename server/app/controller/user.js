@@ -13,14 +13,21 @@ const creatRule = {
   password: { type: 'string' },
 }
 class UserController extends BaseController {
+  /**
+   * 登录
+   */
   async login() {
     const { ctx, app } = this
 
-    const { email, password, captcha } = ctx.request.body
-    console.log(captcha)
+    const { email, password, captcha, emailCode } = ctx.request.body
+    console.log(ctx.request.body)
 
     if (captcha.toUpperCase() !== ctx.session.captcha.toUpperCase()) {
       return this.error('验证码错误')
+
+    }
+    if (emailCode !== ctx.session.emailCode) {
+      return this.error('邮箱验证码错误')
 
     }
     const user = await this.ctx.model.User.findOne({ email, password: md5(password + Hashsalt) })
@@ -33,10 +40,19 @@ class UserController extends BaseController {
     }, app.config.jwt.secret, { expiresIn: '1h' })
     this.success({ token, email, nickName: user.nickName })
   }
+  /**
+   * 用户信息
+   */
   async info() {
     const { ctx } = this
+    const { email } = ctx.state
 
+    const user = await this.checkEmail(email)
+    this.success(user)
   }
+  /**
+   * 注册
+   */
   async register() {
     const { ctx } = this
     try {
@@ -58,16 +74,16 @@ class UserController extends BaseController {
     const res = await ctx.model.User.create({
       email,
       nickName,
-      password: md5(password + Hashsalt)
+      password: md5(password + Hashsalt),
     })
     if (res._id) {
       this.message('注册成功')
     }
-    // console.log(email, nickName)
-    // this.success({ name: '注册成功' })
-
-
   }
+  /**
+   * 检查用户
+   * @param {*} email
+   */
   async checkEmail(email) {
     const user = await this.ctx.model.User.findOne({ email })
     return user
